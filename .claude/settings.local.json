@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cd /d \"D:\\\\Proyecto de nutrucion\\\\NutriSoftware\")",
+      "Bash(Get-ChildItem -Recurse -Force)",
+      "Bash(Select-Object FullName)"
+    ]
+  }
+}

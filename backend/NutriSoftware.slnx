@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/NutriSoftware.API/NutriSoftware.API.csproj" />
+    <Project Path="src/NutriSoftware.Application/NutriSoftware.Application.csproj" />
+    <Project Path="src/NutriSoftware.Domain/NutriSoftware.Domain.csproj" />
+    <Project Path="src/NutriSoftware.Infrastructure/NutriSoftware.Infrastructure.csproj" />
+  </Folder>
+</Solution>
