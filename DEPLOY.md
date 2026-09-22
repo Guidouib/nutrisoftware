@@ -47,9 +47,8 @@ Son **dos guiones bajos** en `Jwt__Secret`: así es como .NET mapea una
 variable de entorno a la clave anidada `Jwt:Secret`.
 
 > **El secreto es obligatorio.** El API se niega a arrancar fuera de
-> Development si `Jwt__Secret` falta o sigue siendo el de `appsettings.json`
-> —que está commiteado, o sea que cualquiera con acceso al repo podría
-> firmar tokens válidos. Generá uno nuevo:
+> Development si `Jwt__Secret` falta, y se niega en cualquier entorno si es
+> el que estuvo expuesto en el historial público del repo. Generá uno nuevo:
 >
 > ```powershell
 > $b = New-Object byte[] 48
@@ -161,7 +160,23 @@ Esto es una demo, no un producto clínico:
    interpolados, no las tablas oficiales mes a mes. Los Z-scores
    infantiles pueden dar diagnósticos equivocados. Hay que cargar los
    archivos de who.int y poner `REFERENCIA_ABREVIADA = false`.
-2. **Rotar el secreto JWT** y sacar `appsettings.json` del control de
-   versiones.
-3. **`SembrarDatosDemo=false`** y crear cuentas reales.
-4. **Backups** — el plan gratuito de Neon no los incluye.
+2. **`SembrarDatosDemo=false`** y crear cuentas reales.
+3. **Backups** — el plan gratuito de Neon no los incluye.
+
+---
+
+## Configuración local tras clonar
+
+`appsettings.json` no lleva secretos: el repositorio es público. La cadena
+de conexión y `Jwt:Secret` viven en `appsettings.Development.json`, que
+está en `.gitignore`.
+
+Al clonar en una máquina nueva, copiá la plantilla y completá los valores:
+
+```bash
+cd backend/src/NutriSoftware.API
+cp appsettings.Development.example.json appsettings.Development.json
+```
+
+El secreto que estuvo expuesto en el historial está rechazado por código
+en todos los entornos, así que no sirve ni para desarrollo.

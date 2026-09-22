@@ -20,18 +20,28 @@ builder.Host.UseSerilog();
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
 
-// El secreto que viaja en appsettings.json es solo para desarrollo: esta
-// commiteado, asi que cualquiera con acceso al repo puede firmar tokens
-// validos. En produccion exigimos uno propio por variable de entorno.
-const string SecretoDeDesarrollo = "NutriSoftware_JWT_Secret_Key_2026_MustBe32CharsMin!";
+// Este secreto estuvo commiteado en appsettings.json de un repositorio
+// publico, asi que hay que darlo por comprometido para siempre: sigue en el
+// historial de git y cualquiera puede firmar tokens validos con el. Ya no
+// esta en el arbol de trabajo, pero lo rechazamos por nombre para que no
+// vuelva por copiar y pegar de un commit viejo.
+const string SecretoComprometido = "NutriSoftware_JWT_Secret_Key_2026_MustBe32CharsMin!";
 var jwtSecret = builder.Configuration["Jwt:Secret"];
 
-if (!builder.Environment.IsDevelopment() &&
-    (string.IsNullOrWhiteSpace(jwtSecret) || jwtSecret == SecretoDeDesarrollo))
+// El comprometido se rechaza en cualquier entorno, tambien en desarrollo:
+// no hay razon para seguir usandolo ni siquiera en local.
+if (jwtSecret == SecretoComprometido)
 {
     throw new InvalidOperationException(
-        "Jwt__Secret no esta definido o sigue siendo el de desarrollo. " +
-        "Genera uno de 32+ caracteres y cargalo como variable de entorno antes de desplegar.");
+        "Jwt:Secret es el secreto que quedo expuesto en el historial publico del repositorio. " +
+        "Genera uno nuevo y ponelo en appsettings.Development.json (local) o en Jwt__Secret (produccion).");
+}
+
+if (!builder.Environment.IsDevelopment() && string.IsNullOrWhiteSpace(jwtSecret))
+{
+    throw new InvalidOperationException(
+        "Jwt__Secret no esta definido. Genera uno de 32+ caracteres y cargalo " +
+        "como variable de entorno antes de desplegar. Ver DEPLOY.md.");
 }
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
