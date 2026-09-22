@@ -13,8 +13,21 @@ public static class DependencyInjection
 {
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration config)
     {
+        // DATABASE_URL va primero a proposito: appsettings.json siempre trae
+        // DefaultConnection apuntando al Postgres local, asi que si el orden
+        // fuera al reves la variable de entorno nunca se leeria y el deploy
+        // terminaria hablandole a un localhost que en el contenedor no existe.
+        var cadena = ConnectionStringHelper.Normalizar(
+            config["DATABASE_URL"]
+            ?? config.GetConnectionString("DefaultConnection"));
+
         services.AddDbContext<ApplicationDbContext>(opt =>
-            opt.UseNpgsql(config.GetConnectionString("DefaultConnection")));
+            opt.UseNpgsql(cadena, npgsql =>
+                // Neon corta la conexion cuando el compute se duerme; sin
+                // reintentos el primer request tras la siesta devuelve 500.
+                npgsql.EnableRetryOnFailure(maxRetryCount: 5,
+                                            maxRetryDelay: TimeSpan.FromSeconds(10),
+                                            errorCodesToAdd: null)));
 
         services.AddScoped<IUsuarioRepository, UsuarioRepository>();
         services.AddScoped<IPacienteRepository, PacienteRepository>();

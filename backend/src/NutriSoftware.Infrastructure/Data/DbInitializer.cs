@@ -6,7 +6,15 @@ namespace NutriSoftware.Infrastructure.Data;
 
 public static class DbInitializer
 {
-    public static async Task SeedAsync(ApplicationDbContext db)
+    public static async Task SeedAsync(ApplicationDbContext db, bool sembrarDemo = false)
+    {
+        await SembrarAlimentosAsync(db);
+
+        if (sembrarDemo)
+            await SembrarCuentaDemoAsync(db);
+    }
+
+    private static async Task SembrarAlimentosAsync(ApplicationDbContext db)
     {
         if (await db.Alimentos.AnyAsync(a => !a.EsPersonalizado))
             return;
@@ -49,6 +57,89 @@ public static class DbInitializer
         };
 
         await db.Alimentos.AddRangeAsync(alimentos);
+        await db.SaveChangesAsync();
+    }
+
+    /// <summary>
+    /// Crea la cuenta de la demo publica con pacientes de ejemplo.
+    ///
+    /// Se activa con SembrarDatosDemo=true. En una base recien creada no hay
+    /// ningun usuario, asi que sin esto la demo queda inaccesible: no habria
+    /// con que iniciar sesion.
+    ///
+    /// Los pacientes son ficticios. No uses datos de personas reales aca: la
+    /// base de la demo es publica de hecho, cualquiera que entre los ve.
+    /// </summary>
+    private static async Task SembrarCuentaDemoAsync(ApplicationDbContext db)
+    {
+        const string EmailDemo = "demo@nutrisoftware.com";
+
+        if (await db.Usuarios.AnyAsync(u => u.Email == EmailDemo))
+            return;
+
+        var usuario = new Usuario
+        {
+            Id = Guid.NewGuid(),
+            Email = EmailDemo,
+            // Credencial publicada a proposito: es la puerta de entrada de la demo.
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword("Nutri2026", workFactor: 12),
+            Rol = RolUsuario.Nutricionista,
+            Activo = true,
+            FechaCreacion = DateTime.UtcNow,
+        };
+
+        var nutricionista = new Nutricionista
+        {
+            Id = Guid.NewGuid(),
+            UsuarioId = usuario.Id,
+            Nombres = "Demo",
+            Apellidos = "NutriSoftware",
+            Especialidad = "Nutrición clínica",
+            NumeroColegiatura = "CNP-0000",
+            FechaCreacion = DateTime.UtcNow,
+        };
+
+        var hoy = DateOnly.FromDateTime(DateTime.UtcNow);
+
+        var pacientes = new List<Paciente>
+        {
+            new() { Id=Guid.NewGuid(), NutricionistaId=nutricionista.Id, Nombres="Ana",    Apellidos="Quispe Rojas",  FechaNacimiento=new DateOnly(1994,3,11),  Sexo="F", Dni="70123456", PesoObjetivo=62m, Notas="Consulta por control de peso. Ejemplo de la demo.",        Activo=true, FechaCreacion=DateTime.UtcNow },
+            new() { Id=Guid.NewGuid(), NutricionistaId=nutricionista.Id, Nombres="Carlos", Apellidos="Mendoza Ríos",  FechaNacimiento=new DateOnly(1987,11,2),  Sexo="M", Dni="70987654", PesoObjetivo=78m, Notas="Deportista recreativo. Ejemplo de la demo.",                Activo=true, FechaCreacion=DateTime.UtcNow },
+            new() { Id=Guid.NewGuid(), NutricionistaId=nutricionista.Id, Nombres="Lucía",  Apellidos="Fernández Paz", FechaNacimiento=new DateOnly(2016,6,20),  Sexo="F", Dni="71222333", Notas="Paciente pediátrica: muestra las curvas OMS. Ejemplo de la demo.", Activo=true, FechaCreacion=DateTime.UtcNow },
+        };
+
+        // Seis controles mensuales para que las graficas de evolucion no
+        // aparezcan vacias al abrir el modulo de seguimiento.
+        var seguimientos = new List<Seguimiento>();
+        decimal[] pesosAna = [74.2m, 73.1m, 72.4m, 71.0m, 69.8m, 68.5m];
+
+        for (var i = 0; i < pesosAna.Length; i++)
+        {
+            seguimientos.Add(new Seguimiento
+            {
+                Id = Guid.NewGuid(),
+                PacienteId = pacientes[0].Id,
+                Fecha = hoy.AddMonths(-(pesosAna.Length - 1 - i)),
+                Peso = pesosAna[i],
+                Talla = i == 0 ? 1.62m : null,
+                Cumplimiento = i < 2 ? 3 : 4,
+                Observaciones = i == 0 ? "Control inicial." : null,
+                FechaCreacion = DateTime.UtcNow,
+            });
+        }
+
+        var citas = new List<Cita>
+        {
+            new() { Id=Guid.NewGuid(), PacienteId=pacientes[0].Id, NutricionistaId=nutricionista.Id, FechaHora=DateTime.UtcNow.AddDays(3).Date.AddHours(15), TipoConsulta=TipoConsulta.Seguimiento, Modalidad=ModalidadCita.Presencial, Estado=EstadoCita.Programada,  DuracionMinutos=45, FechaCreacion=DateTime.UtcNow },
+            new() { Id=Guid.NewGuid(), PacienteId=pacientes[1].Id, NutricionistaId=nutricionista.Id, FechaHora=DateTime.UtcNow.AddDays(5).Date.AddHours(10), TipoConsulta=TipoConsulta.Control,     Modalidad=ModalidadCita.Virtual,    Estado=EstadoCita.Confirmada, DuracionMinutos=30, FechaCreacion=DateTime.UtcNow },
+            new() { Id=Guid.NewGuid(), PacienteId=pacientes[2].Id, NutricionistaId=nutricionista.Id, FechaHora=DateTime.UtcNow.AddDays(-7).Date.AddHours(9), TipoConsulta=TipoConsulta.PrimeraVez,  Modalidad=ModalidadCita.Presencial, Estado=EstadoCita.Completada, DuracionMinutos=60, FechaCreacion=DateTime.UtcNow },
+        };
+
+        await db.Usuarios.AddAsync(usuario);
+        await db.Nutricionistas.AddAsync(nutricionista);
+        await db.Pacientes.AddRangeAsync(pacientes);
+        await db.Seguimientos.AddRangeAsync(seguimientos);
+        await db.Citas.AddRangeAsync(citas);
         await db.SaveChangesAsync();
     }
 }

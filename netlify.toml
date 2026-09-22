@@ -1,0 +1,42 @@
+# ─────────────────────────────────────────────────────────────────────
+# Despliegue del frontend en Netlify.
+#
+# ANTES DE DESPLEGAR: reemplaza TU-APP-KOYEB por el subdominio que te
+# asigne Koyeb (lo ves en el panel, con forma nombre-organizacion.koyeb.app).
+# ─────────────────────────────────────────────────────────────────────
+
+[build]
+  base    = "frontend"
+  command = "npm run build"
+  # Relativo a `base`, no a la raiz del repo: esto apunta a frontend/dist.
+  publish = "dist"
+
+[build.environment]
+  # Vite 8 necesita Node 20+.
+  NODE_VERSION = "20"
+
+# Netlify hace de proxy hacia el API. Asi el navegador ve un unico origen
+# y no hay preflight CORS: el frontend sigue pidiendo a /api tal cual, sin
+# saber que el backend vive en otro dominio.
+#
+# Va ANTES del fallback del SPA: las reglas se evaluan en orden y el
+# comodin /* se tragaria tambien las rutas del API.
+[[redirects]]
+  from   = "/api/*"
+  to     = "https://TU-APP-KOYEB.koyeb.app/api/:splat"
+  status = 200
+  force  = true
+
+# Fallback del SPA: react-router resuelve las rutas en el cliente, asi que
+# cualquier URL profunda (/pacientes/123) tiene que devolver el index.
+[[redirects]]
+  from   = "/*"
+  to     = "/index.html"
+  status = 200
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options        = "SAMEORIGIN"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy        = "strict-origin-when-cross-origin"

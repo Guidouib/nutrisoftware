@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Navigate, Outlet } from 'react-router-dom'
 import { useAuthStore } from '../../stores/authStore'
 import Sidebar from './Sidebar'
+import { AvisoDemo } from './AvisoDemo'
 
 export default function AppLayout() {
   const isAuthenticated = useAuthStore(s => s.isAuthenticated)
@@ -37,6 +38,8 @@ export default function AppLayout() {
             <span className="text-sm font-bold tracking-tight text-slate-900">NutriSoftware</span>
           </div>
         </header>
+
+        <AvisoDemo />
 
         <Outlet />
       </main>

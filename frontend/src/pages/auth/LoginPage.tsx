@@ -6,6 +6,7 @@ import { z } from 'zod'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../../stores/authStore'
 import { api } from '../../services/api'
+import { CredencialesDemo } from '../../components/layout/AvisoDemo'
 
 /* ── Schema ── */
 const schema = z.object({
@@ -347,6 +348,11 @@ export default function LoginPage() {
                   Regístrate gratis
                 </Link>
               </p>
+            </div>
+
+            {/* Credenciales de la demo pública (solo con VITE_MODO_DEMO=true) */}
+            <div style={{ marginBottom: '16px' }}>
+              <CredencialesDemo />
             </div>
 
             {/* Form */}
