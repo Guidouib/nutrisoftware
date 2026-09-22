@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from 'react'
-import { useForm } from 'react-hook-form'
+import { useForm, type Resolver } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Modal } from '../../components/ui/Modal'
@@ -80,14 +80,14 @@ export default function AlimentosPage() {
 
   /* ── Forms ── */
   const { register: regFood, handleSubmit: submitFood, reset: resetFood, formState: { errors: foodErr } } =
-    useForm<AlimentoForm>({ resolver: zodResolver(alimentoSchema) })
+    useForm<AlimentoForm>({ resolver: zodResolver(alimentoSchema) as unknown as Resolver<AlimentoForm> })
 
   useEffect(() => {
     alimentosService.getAll().then(setAlimentos).catch(console.error)
   }, [])
 
   const { register: regPl, handleSubmit: submitPl, reset: resetPl, formState: { errors: plErr } } =
-    useForm<PlatilloForm>({ resolver: zodResolver(platilloSchema), defaultValues: { porciones: 1 } })
+    useForm<PlatilloForm>({ resolver: zodResolver(platilloSchema) as unknown as Resolver<PlatilloForm>, defaultValues: { porciones: 1 } })
 
   /* ── Filtered alimentos ── */
   const filtered = useMemo(() => {

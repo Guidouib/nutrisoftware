@@ -18,9 +18,14 @@ public class Paciente
     public bool Activo { get; set; } = true;
     public DateTime FechaCreacion { get; set; } = DateTime.UtcNow;
 
+    /// <summary>Meta de peso del tratamiento; alimenta la linea de meta del seguimiento.</summary>
+    public decimal? PesoObjetivo { get; set; }
+
     public Nutricionista Nutricionista { get; set; } = null!;
     public Usuario? Usuario { get; set; }
     public ICollection<Cita> Citas { get; set; } = [];
     public ICollection<Dieta> Dietas { get; set; } = [];
     public ICollection<Seguimiento> Seguimientos { get; set; } = [];
+    public ICollection<Evaluacion> Evaluaciones { get; set; } = [];
+    public ICollection<PdfGenerado> PdfsGenerados { get; set; } = [];
 }

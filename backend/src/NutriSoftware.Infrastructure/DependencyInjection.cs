@@ -20,9 +20,20 @@ public static class DependencyInjection
         services.AddScoped<IPacienteRepository, PacienteRepository>();
         services.AddScoped<ICitaRepository, CitaRepository>();
         services.AddScoped<IAlimentoRepository, AlimentoRepository>();
+        services.AddScoped<IEvaluacionRepository, EvaluacionRepository>();
+        services.AddScoped<IDietaRepository, DietaRepository>();
+        services.AddScoped<ISeguimientoRepository, SeguimientoRepository>();
+        services.AddScoped<IReporteRepository, ReporteRepository>();
         services.AddScoped<IJwtService, JwtService>();
         services.AddScoped<IPasswordService, PasswordService>();
         services.AddScoped<IDashboardService, DashboardService>();
+
+        // QuestPDF bajo licencia Community (gratuita para uso comercial hasta
+        // el umbral de facturacion que fija su licencia).
+        QuestPDF.Settings.License = QuestPDF.Infrastructure.LicenseType.Community;
+        // Evita que una fuente sin el glifo exacto aborte la generacion.
+        QuestPDF.Settings.CheckIfAllTextGlyphsAreAvailable = false;
+        services.AddSingleton<IGeneradorPdf, GeneradorPdfQuestPdf>();
 
         return services;
     }

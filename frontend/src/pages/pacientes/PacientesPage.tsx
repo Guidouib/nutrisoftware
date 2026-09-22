@@ -75,11 +75,6 @@ export default function PacientesPage() {
   /* ── Stats ── */
   const totalActivos = pacientes.filter(p => p.estado === 'activo').length
   const totalInactivos = pacientes.filter(p => p.estado === 'inactivo').length
-  const nuevos = pacientes.filter(p => {
-    const d = new Date(p.fechaCreacion)
-    const now = new Date()
-    return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()
-  }).length
 
   /* ── Open modal to create ── */
   const openCreate = () => {
@@ -430,8 +425,6 @@ export default function PacientesPage() {
 /* ── Inline icons ── */
 function IcoPlus() { return <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden><path d="M7 2v10M2 7h10" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/></svg> }
 function IcoUsers() { return <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden><circle cx="6" cy="5" r="2.5" stroke="currentColor" strokeWidth="1.3"/><path d="M1 14c0-2.8 2.2-4.5 5-4.5s5 1.7 5 4.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/><path d="M11 7c1.4 0 2.5 1 2.5 2.5 0 1.1-.5 1.8-1.5 2.2" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/></svg> }
-function IcoCheck() { return <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden><path d="M3 8.5l3.5 3.5L13 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg> }
-function IcoStar() { return <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden><path d="M8 1.5l1.8 3.6 4 .6-2.9 2.8.7 4L8 10.4 4.4 12.5l.7-4L2.2 5.7l4-.6L8 1.5z" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round"/></svg> }
 function IcoSearch() { return <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden><circle cx="6" cy="6" r="4" stroke="currentColor" strokeWidth="1.3"/><path d="M9.5 9.5L13 13" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/></svg> }
 function IcoList() { return <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden><path d="M2 3.5h10M2 7h10M2 10.5h10" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/></svg> }
 function IcoGrid() { return <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden><rect x="1.5" y="1.5" width="4.5" height="4.5" rx="1" stroke="currentColor" strokeWidth="1.3"/><rect x="8" y="1.5" width="4.5" height="4.5" rx="1" stroke="currentColor" strokeWidth="1.3"/><rect x="1.5" y="8" width="4.5" height="4.5" rx="1" stroke="currentColor" strokeWidth="1.3"/><rect x="8" y="8" width="4.5" height="4.5" rx="1" stroke="currentColor" strokeWidth="1.3"/></svg> }

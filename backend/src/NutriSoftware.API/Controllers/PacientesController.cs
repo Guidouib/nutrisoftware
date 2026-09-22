@@ -2,7 +2,9 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using NutriSoftware.Application.DTOs.Pacientes;
+using NutriSoftware.Application.DTOs.Seguimiento;
 using NutriSoftware.Application.Features.Pacientes;
+using NutriSoftware.Application.Features.Seguimiento;
 using System.Security.Claims;
 
 namespace NutriSoftware.API.Controllers;
@@ -61,6 +63,31 @@ public class PacientesController(IMediator mediator) : ControllerBase
     public async Task<ActionResult<PacienteDto>> ToggleEstado(Guid id, CancellationToken ct)
     {
         var result = await mediator.Send(new ToggleEstadoPacienteCommand(id, GetNutricionistaId()), ct);
+        return Ok(result);
+    }
+
+    /* --- Meta de peso del tratamiento ---
+       Vive bajo /pacientes porque es un atributo del paciente, aunque solo la
+       consuma el modulo de seguimiento para dibujar la linea de meta. */
+
+    [HttpGet("{id:guid}/meta")]
+    [ProducesResponseType(typeof(MetaPacienteDto), 200)]
+    [ProducesResponseType(404)]
+    public async Task<ActionResult<MetaPacienteDto>> ObtenerMeta(Guid id, CancellationToken ct)
+    {
+        var result = await mediator.Send(new GetMetaQuery(id, GetNutricionistaId()), ct);
+        return Ok(result);
+    }
+
+    [HttpPut("{id:guid}/meta")]
+    [ProducesResponseType(typeof(MetaPacienteDto), 200)]
+    [ProducesResponseType(400)]
+    [ProducesResponseType(404)]
+    public async Task<ActionResult<MetaPacienteDto>> GuardarMeta(
+        Guid id, [FromBody] MetaPacienteDto request, CancellationToken ct)
+    {
+        var result = await mediator.Send(
+            new GuardarMetaCommand(id, GetNutricionistaId(), request.PesoObjetivo), ct);
         return Ok(result);
     }
 }

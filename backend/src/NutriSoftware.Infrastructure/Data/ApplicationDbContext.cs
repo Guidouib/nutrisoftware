@@ -15,6 +15,8 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     public DbSet<DiaDieta> DiasDieta => Set<DiaDieta>();
     public DbSet<TiempoComida> TiemposComida => Set<TiempoComida>();
     public DbSet<Seguimiento> Seguimientos => Set<Seguimiento>();
+    public DbSet<Evaluacion> Evaluaciones => Set<Evaluacion>();
+    public DbSet<PdfGenerado> PdfsGenerados => Set<PdfGenerado>();
 
     protected override void OnModelCreating(ModelBuilder model)
     {
@@ -58,6 +60,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
              .IsRequired(false);
             e.Property(p => p.Nombres).HasMaxLength(100).IsRequired();
             e.Property(p => p.Apellidos).HasMaxLength(100).IsRequired();
+            e.Property(p => p.PesoObjetivo).HasPrecision(6, 2);
         });
 
         model.Entity<Cita>(e =>
@@ -86,19 +89,33 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
         {
             e.HasKey(d => d.Id);
             e.HasOne(d => d.Paciente).WithMany(p => p.Dietas).HasForeignKey(d => d.PacienteId);
+            e.Property(d => d.Nombre).HasMaxLength(200).IsRequired();
             e.Property(d => d.CaloriasObjetivo).HasPrecision(10, 2);
+            e.Property(d => d.ProteinasObjetivo).HasPrecision(10, 2);
+            e.Property(d => d.CarbohidratosObjetivo).HasPrecision(10, 2);
+            e.Property(d => d.GrasasObjetivo).HasPrecision(10, 2);
+            e.HasIndex(d => new { d.PacienteId, d.Fecha });
         });
 
         model.Entity<DiaDieta>(e =>
         {
             e.HasKey(d => d.Id);
-            e.HasOne(d => d.Dieta).WithMany(dt => dt.Dias).HasForeignKey(d => d.DietaId);
+            e.HasOne(d => d.Dieta).WithMany(dt => dt.Dias)
+             .HasForeignKey(d => d.DietaId)
+             .OnDelete(DeleteBehavior.Cascade);
+            // Un solo registro por dia dentro de cada plan.
+            e.HasIndex(d => new { d.DietaId, d.DiaSemana }).IsUnique();
         });
 
         model.Entity<TiempoComida>(e =>
         {
             e.HasKey(t => t.Id);
-            e.HasOne(t => t.DiaDieta).WithMany(d => d.TiemposComida).HasForeignKey(t => t.DiaDietaId);
+            e.HasOne(t => t.DiaDieta).WithMany(d => d.TiemposComida)
+             .HasForeignKey(t => t.DiaDietaId)
+             .OnDelete(DeleteBehavior.Cascade);
+            e.Property(t => t.Nombre).HasMaxLength(100).IsRequired();
+            e.Property(t => t.AlimentosJson).HasColumnType("jsonb");
+            e.Property(t => t.TotalesJson).HasColumnType("jsonb");
         });
 
         model.Entity<Seguimiento>(e =>
@@ -106,6 +123,38 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             e.HasKey(s => s.Id);
             e.HasOne(s => s.Paciente).WithMany(p => p.Seguimientos).HasForeignKey(s => s.PacienteId);
             e.Property(s => s.Peso).HasPrecision(6, 2);
+            e.Property(s => s.Talla).HasPrecision(5, 1);
+            e.Property(s => s.MedidasJson).HasColumnType("jsonb");
+            e.HasIndex(s => new { s.PacienteId, s.Fecha });
+        });
+
+        model.Entity<Evaluacion>(e =>
+        {
+            e.HasKey(v => v.Id);
+            e.HasOne(v => v.Paciente).WithMany(p => p.Evaluaciones)
+             .HasForeignKey(v => v.PacienteId)
+             .OnDelete(DeleteBehavior.Cascade);
+            // jsonb en vez de text: permite consultar dentro de las mediciones
+            // sin migrar el esquema cuando cambie un formulario.
+            e.Property(v => v.DatosJson).HasColumnType("jsonb").IsRequired();
+            e.Property(v => v.Tipo).HasConversion<string>().HasMaxLength(30);
+            // El listado de un sub-modulo siempre filtra por paciente + tipo.
+            e.HasIndex(v => new { v.PacienteId, v.Tipo, v.Fecha });
+        });
+
+        model.Entity<PdfGenerado>(e =>
+        {
+            e.HasKey(p => p.Id);
+            e.HasOne(p => p.Paciente).WithMany(pa => pa.PdfsGenerados)
+             .HasForeignKey(p => p.PacienteId)
+             .OnDelete(DeleteBehavior.Cascade);
+            // Si se borra la dieta, el PDF ya emitido sigue en el expediente.
+            e.HasOne(p => p.Dieta).WithMany(d => d.PdfsGenerados)
+             .HasForeignKey(p => p.DietaId)
+             .OnDelete(DeleteBehavior.SetNull);
+            e.Property(p => p.Tipo).HasMaxLength(200).IsRequired();
+            e.Property(p => p.NombreArchivo).HasMaxLength(260).IsRequired();
+            e.HasIndex(p => new { p.PacienteId, p.Fecha });
         });
     }
 }

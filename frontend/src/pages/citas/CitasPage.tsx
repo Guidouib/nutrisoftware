@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect, useCallback } from 'react'
-import { useForm } from 'react-hook-form'
+import { useForm, type Resolver } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Modal } from '../../components/ui/Modal'
@@ -79,7 +79,7 @@ export default function CitasPage() {
   const [detailOpen, setDetailOpen] = useState(false)
 
   const { register, handleSubmit, reset, formState: { errors } } = useForm<CitaForm>({
-    resolver: zodResolver(citaSchema),
+    resolver: zodResolver(citaSchema) as unknown as Resolver<CitaForm>,
     defaultValues: { tipo: 'primera_vez', modalidad: 'presencial', duracionMinutos: 45 },
   })
 
@@ -683,5 +683,4 @@ function tipoCitaLabel(tipo: TipoCita): string {
 function IcoPlus()      { return <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden><path d="M7 2v10M2 7h10" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/></svg> }
 function IcoChevLeft()  { return <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden><path d="M8.5 3L4.5 7l4 4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/></svg> }
 function IcoChevRight() { return <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden><path d="M5.5 3L9.5 7l-4 4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/></svg> }
-function IcoClock()     { return <svg width="13" height="13" viewBox="0 0 13 13" fill="none" aria-hidden><circle cx="6.5" cy="6.5" r="5" stroke="currentColor" strokeWidth="1.2"/><path d="M6.5 4v3l1.5 1.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/></svg> }
 function IcoCalendar()  { return <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden><rect x="1.5" y="2.5" width="11" height="10" rx="1.5" stroke="currentColor" strokeWidth="1.2"/><path d="M5 1.5v2M9 1.5v2M1.5 5.5h11" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/></svg> }
