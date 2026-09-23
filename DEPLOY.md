@@ -73,7 +73,7 @@ Cuando termine el deploy anotá la URL que te asigna:
 Verificá que responde:
 
 ```bash
-curl https://TU-APP-RENDER.onrender.com/health
+curl https://nutrisoftware-api.onrender.com/health
 # {"estado":"ok","fecha":"..."}
 ```
 
@@ -81,10 +81,10 @@ curl https://TU-APP-RENDER.onrender.com/health
 
 ## 3 · Netlify — frontend
 
-**Antes de conectar el repo**, editá `netlify.toml` y reemplazá
-`TU-APP-RENDER` por el subdominio real de Render. Commiteá el cambio.
-
 **Add new site → Import from GitHub →** repo `nutrisoftware`.
+
+El proxy de `netlify.toml` ya apunta a `nutrisoftware-api.onrender.com`.
+Si alguna vez renombrás el servicio en Render, hay que actualizar esa URL.
 
 La configuración de build ya viene en `netlify.toml` (base `frontend`,
 `npm run build`, publish `dist`). Solo agregá la variable de entorno:
@@ -140,7 +140,7 @@ encuentra un minuto de pantalla en blanco, la demo pierde la gracia.
 
 La vuelta es un monitor externo que pegue a `/health` cada 10 minutos.
 [UptimeRobot](https://uptimerobot.com) lo hace gratis: monitor HTTP(s),
-URL `https://TU-APP-RENDER.onrender.com/health`, intervalo 10 min.
+URL `https://nutrisoftware-api.onrender.com/health`, intervalo 10 min.
 
 Las cuentas se hacen: mantenerlo despierto las 24 h consume unas 730 horas
 al mes, y el plan libre da 750. Entra, pero **con un solo servicio**. Si
@@ -169,8 +169,9 @@ Mirá los logs de Render. Casi siempre es `Jwt__Secret` sin definir (el
 mensaje lo dice explícitamente) o la `DATABASE_URL` mal pegada.
 
 **El frontend carga pero el login da 404 o falla la red**
-`TU-APP-RENDER` quedó sin reemplazar en `netlify.toml`, o el deploy de
-Netlify es anterior al cambio. Redeployá.
+La URL de Render en el proxy de `netlify.toml` no coincide con el servicio
+real, o el deploy de Netlify es anterior al último cambio del archivo.
+Verificá la URL y redeployá.
 
 **Los PDF fallan en producción pero andan en local**
 QuestPDF renderiza con SkiaSharp, que enlaza contra `libfontconfig` y

@@ -1,8 +1,8 @@
 # ─────────────────────────────────────────────────────────────────────
 # Despliegue del frontend en Netlify.
 #
-# ANTES DE DESPLEGAR: reemplaza TU-APP-RENDER por el subdominio que te
-# asigne Render (lo ves en el panel, con forma nutrisoftware-api.onrender.com).
+# El proxy de abajo apunta al API desplegado en Render. Si cambias el
+# nombre del servicio en render.yaml, hay que actualizar esa URL aca.
 # ─────────────────────────────────────────────────────────────────────
 
 [build]
@@ -23,7 +23,7 @@
 # comodin /* se tragaria tambien las rutas del API.
 [[redirects]]
   from   = "/api/*"
-  to     = "https://TU-APP-RENDER.onrender.com/api/:splat"
+  to     = "https://nutrisoftware-api.onrender.com/api/:splat"
   status = 200
   force  = true
 
