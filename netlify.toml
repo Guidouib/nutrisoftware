@@ -12,8 +12,10 @@
   publish = "dist"
 
 [build.environment]
-  # Vite 8 necesita Node 20+.
-  NODE_VERSION = "20"
+  # Vite 8 pide "^20.19.0 || >=22.12.0". Fijamos 22 y no 20 porque la rama
+  # 20 ya salio de soporte y "20" a secas puede resolver a una version
+  # anterior a la 20.19, con la que el build falla.
+  NODE_VERSION = "22"
 
 # Netlify hace de proxy hacia el API. Asi el navegador ve un unico origen
 # y no hay preflight CORS: el frontend sigue pidiendo a /api tal cual, sin
