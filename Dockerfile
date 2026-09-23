@@ -1,5 +1,6 @@
 # ─────────────────────────────────────────────────────────────────────
-# Imagen del API de NutriSoftware (.NET 10) para Koyeb.
+# Imagen del API de NutriSoftware (.NET 10). Portable: corre igual en
+# Render, Cloud Run o local.
 # Contexto de build: la raiz del repositorio.
 # ─────────────────────────────────────────────────────────────────────
 
@@ -34,14 +35,17 @@ RUN apt-get update \
 
 COPY --from=build /app/publish ./
 
-# Koyeb enruta al 8000 por defecto.
-ENV ASPNETCORE_HTTP_PORTS=8000 \
-    ASPNETCORE_ENVIRONMENT=Production \
+ENV ASPNETCORE_ENVIRONMENT=Production \
     DOTNET_gcServer=0
 EXPOSE 8000
 
-# El contenedor libre de Koyeb trae 512 MB: sin este tope el GC de .NET
+# El contenedor libre de Render trae 512 MB: sin este tope el GC de .NET
 # calcula el presupuesto sobre la RAM del host y termina con OOMKilled.
 ENV DOTNET_GCHeapHardLimit=0x10000000
 
-ENTRYPOINT ["dotnet", "NutriSoftware.API.dll"]
+# Cada plataforma inyecta el puerto en $PORT y espera que la app escuche ahi
+# (Render usa 10000, Cloud Run 8080, Koyeb 8000). Resolverlo en tiempo de
+# ejecucion mantiene la imagen portable; el 8000 es el valor para correrla
+# a mano. `exec` deja a dotnet como PID 1 para que reciba el SIGTERM del
+# apagado en vez de que lo intercepte la shell.
+ENTRYPOINT ["sh", "-c", "ASPNETCORE_HTTP_PORTS=${PORT:-8000} exec dotnet NutriSoftware.API.dll"]

@@ -1,8 +1,8 @@
 # ─────────────────────────────────────────────────────────────────────
 # Despliegue del frontend en Netlify.
 #
-# ANTES DE DESPLEGAR: reemplaza TU-APP-KOYEB por el subdominio que te
-# asigne Koyeb (lo ves en el panel, con forma nombre-organizacion.koyeb.app).
+# ANTES DE DESPLEGAR: reemplaza TU-APP-RENDER por el subdominio que te
+# asigne Render (lo ves en el panel, con forma nutrisoftware-api.onrender.com).
 # ─────────────────────────────────────────────────────────────────────
 
 [build]
@@ -23,7 +23,7 @@
 # comodin /* se tragaria tambien las rutas del API.
 [[redirects]]
   from   = "/api/*"
-  to     = "https://TU-APP-KOYEB.koyeb.app/api/:splat"
+  to     = "https://TU-APP-RENDER.onrender.com/api/:splat"
   status = 200
   force  = true
 

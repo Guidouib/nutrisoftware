@@ -127,7 +127,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 
-// Koyeb necesita una ruta sin autenticar para los health checks.
+// Ruta sin autenticar para el health check de la plataforma (Render).
 app.MapGet("/health", () => Results.Ok(new { estado = "ok", fecha = DateTime.UtcNow }))
    .AllowAnonymous();
 

@@ -1,0 +1,42 @@
+# ─────────────────────────────────────────────────────────────────────
+# Blueprint de Render para el API de NutriSoftware.
+#
+# La base NO se declara aca a proposito: el Postgres gratuito de Render
+# vence a los 30 dias y borra los datos. La demo usa Neon, cuyo plan
+# libre es permanente, y su cadena se carga en DATABASE_URL.
+# ─────────────────────────────────────────────────────────────────────
+
+services:
+  - type: web
+    name: nutrisoftware-api
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    plan: free
+    region: oregon
+    healthCheckPath: /health
+
+    envVars:
+      # Cadena de conexion de Neon. `sync: false` hace que Render la pida
+      # al crear el servicio en vez de guardarla en el repo.
+      - key: DATABASE_URL
+        sync: false
+
+      # Render genera el secreto una sola vez y lo guarda cifrado. No hace
+      # falta que nadie lo vea: solo lo usa el propio servicio para firmar.
+      - key: Jwt__Secret
+        generateValue: true
+
+      - key: Jwt__Issuer
+        value: NutriSoftware
+      - key: Jwt__Audience
+        value: NutriSoftwareClients
+
+      - key: SembrarDatosDemo
+        value: "true"
+      - key: HabilitarSwagger
+        value: "true"
+
+      # Reemplazar por la URL real de Netlify despues del primer deploy.
+      - key: AllowedOrigins
+        sync: false
