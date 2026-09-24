@@ -44,6 +44,18 @@ function mapAlimento(a: AlimentoApi): Alimento {
 }
 
 export const alimentosService = {
+  /**
+   * Un alimento con su composición completa (hasta 22 nutrientes).
+   *
+   * El listado los omite a propósito —mandarlos para los 1.895 alimentos de
+   * la tabla peruana infla la respuesta a 1,2 MB— así que quien los necesita
+   * pide el alimento puntual.
+   */
+  async getById(id: string): Promise<Alimento> {
+    const { data } = await api.get<AlimentoApi>(`/alimentos/${id}`)
+    return mapAlimento(data)
+  },
+
   async getAll(fuente?: string, categoria?: string, busqueda?: string): Promise<Alimento[]> {
     const params: Record<string, string> = {}
     if (fuente && fuente !== 'todos') {

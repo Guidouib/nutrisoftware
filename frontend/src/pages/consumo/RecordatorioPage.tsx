@@ -7,6 +7,7 @@ import { Spinner } from '../../components/ui/Spinner'
 import { BuscadorAlimentosDrawer } from '../../components/dietas/BuscadorAlimentosDrawer'
 import { TablaNutrientes } from '../../components/consumo/TablaNutrientes'
 import { usePaciente } from '../../hooks/useEvaluacion'
+import { alimentosService } from '../../services/alimentosService'
 import { useRecordatorio, type EstadoAutoguardado } from '../../hooks/useConsumo'
 import { calcularAporte, calcularTotales } from '../../lib/consumo'
 import { origenPorCategoria, type OrigenAlimento } from '../../lib/nutrientes'
@@ -47,7 +48,17 @@ export default function RecordatorioPage() {
     return mapa
   }, [borrador.items])
 
-  const agregarAlimento = (alimento: Alimento, gramos: number) => {
+  const agregarAlimento = async (alimentoDeLista: Alimento, gramos: number) => {
+    // El listado no trae la composición completa: se pide el alimento puntual
+    // para tener los 22 nutrientes. Si la consulta falla se sigue con lo que
+    // ya tenemos —macronutrientes— en vez de perder la carga.
+    let alimento = alimentoDeLista
+    try {
+      alimento = await alimentosService.getById(alimentoDeLista.id)
+    } catch {
+      /* se usa el de la lista */
+    }
+
     const composicion = alimento.micronutrientes ?? {
       // Alimento sin composición completa (los personalizados, por ejemplo):
       // se arma con los macronutrientes que sí tiene. El resto queda ausente,

@@ -29,6 +29,19 @@ public class AlimentosController(IMediator mediator) : ControllerBase
         return Ok(result);
     }
 
+    /// <summary>
+    /// Un alimento con su composición completa (hasta 22 nutrientes). El
+    /// listado los omite para no mandar 1,2 MB; acá vienen.
+    /// </summary>
+    [HttpGet("{id:guid}")]
+    [ProducesResponseType(typeof(AlimentoDto), 200)]
+    [ProducesResponseType(404)]
+    public async Task<ActionResult<AlimentoDto>> ObtenerPorId(Guid id, CancellationToken ct)
+    {
+        var result = await mediator.Send(new GetAlimentoByIdQuery(id), ct);
+        return Ok(result);
+    }
+
     [HttpPost]
     [ProducesResponseType(typeof(AlimentoDto), 201)]
     [ProducesResponseType(400)]

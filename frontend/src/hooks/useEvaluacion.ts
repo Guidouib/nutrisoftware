@@ -109,12 +109,26 @@ export function useRequerimientos(pacienteId: string | undefined) {
   const { data, isLoading } = useEvaluacionesAdulto(pacienteId)
   const ultima = data?.[0]
 
-  const requerimientos: RequerimientosPaciente | null = ultima
+  // Una evaluación guardada a medias —sin kcal o sin el reparto de
+  // macronutrientes— no sirve para construir la dieta: multiplicar por
+  // undefined da NaN y el constructor termina mostrando «0 / NaN g» en las
+  // barras de cobertura. Se trata como "sin requerimientos" y la pantalla
+  // muestra su aviso de que falta la evaluación.
+  const kcal = Number(ultima?.requerimientoKcal)
+  const pProt = Number(ultima?.porcentajeProteinas)
+  const pCarb = Number(ultima?.porcentajeCarbohidratos)
+  const pGras = Number(ultima?.porcentajeGrasas)
+
+  const completos =
+    Number.isFinite(kcal) && kcal > 0 &&
+    Number.isFinite(pProt) && Number.isFinite(pCarb) && Number.isFinite(pGras)
+
+  const requerimientos: RequerimientosPaciente | null = completos
     ? {
-        kcal: ultima.requerimientoKcal,
-        proteinasG: Math.round((ultima.requerimientoKcal * ultima.porcentajeProteinas) / 100 / 4),
-        carbohidratosG: Math.round((ultima.requerimientoKcal * ultima.porcentajeCarbohidratos) / 100 / 4),
-        grasasG: Math.round((ultima.requerimientoKcal * ultima.porcentajeGrasas) / 100 / 9),
+        kcal,
+        proteinasG: Math.round((kcal * pProt) / 100 / 4),
+        carbohidratosG: Math.round((kcal * pCarb) / 100 / 4),
+        grasasG: Math.round((kcal * pGras) / 100 / 9),
       }
     : null
 

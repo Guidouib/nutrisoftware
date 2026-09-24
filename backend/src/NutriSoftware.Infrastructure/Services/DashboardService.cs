@@ -29,6 +29,19 @@ public class DashboardService(ApplicationDbContext db) : IDashboardService
             .CountAsync(p => p.NutricionistaId == nutricionistaId
                 && p.FechaCreacion >= firstOfMonth, ct);
 
+        // Se cuentan a traves del paciente: ni Evaluacion ni Dieta guardan el
+        // nutricionista, cuelgan del paciente que si lo tiene.
+        var evaluacionesMes = await db.Evaluaciones
+            .CountAsync(e => e.Paciente.NutricionistaId == nutricionistaId
+                && e.FechaCreacion >= firstOfMonth, ct);
+
+        var dietasGeneradas = await db.Dietas
+            .CountAsync(d => d.Paciente.NutricionistaId == nutricionistaId, ct);
+
+        var recordatoriosMes = await db.RegistrosConsumo
+            .CountAsync(r => r.Paciente.NutricionistaId == nutricionistaId
+                && r.FechaCreacion >= firstOfMonth, ct);
+
         var proximasCitas = await db.Citas
             .Include(c => c.Paciente)
             .Where(c => c.NutricionistaId == nutricionistaId
@@ -46,6 +59,7 @@ public class DashboardService(ApplicationDbContext db) : IDashboardService
             .ToListAsync(ct);
 
         return new DashboardStatsDto(
-            pacientesActivos, citasHoy, citasMes, pacientesMes, proximasCitas);
+            pacientesActivos, citasHoy, citasMes, pacientesMes, proximasCitas,
+            evaluacionesMes, dietasGeneradas, recordatoriosMes);
     }
 }

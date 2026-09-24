@@ -12,8 +12,25 @@ interface DashboardStats {
   citasHoy: number
   citasMes: number
   pacientesMes: number
+  evaluacionesMes: number
+  dietasGeneradas: number
+  recordatoriosMes: number
 }
-const EMPTY_STATS: DashboardStats = { pacientesActivos: 0, citasHoy: 0, citasMes: 0, pacientesMes: 0 }
+/** Modulos clinicos y su estado. El contador del badge sale de aca. */
+const MODULOS = [
+  { emoji: '📐', label: 'Antropometría', active: true },
+  { emoji: '🔬', label: 'Bioquímica',    active: true },
+  { emoji: '🩺', label: 'Clínica',       active: true },
+  { emoji: '🥗', label: 'Dietas',        active: true },
+  { emoji: '📈', label: 'Seguimiento',   active: true },
+  { emoji: '👶', label: 'Pediátrico',    active: true },
+  { emoji: '🍽️', label: 'Consumo',       active: true },
+]
+
+const EMPTY_STATS: DashboardStats = {
+  pacientesActivos: 0, citasHoy: 0, citasMes: 0, pacientesMes: 0,
+  evaluacionesMes: 0, dietasGeneradas: 0, recordatoriosMes: 0,
+}
 
 function useDashboardStats() {
   return useQuery({
@@ -47,8 +64,8 @@ export default function DashboardPage() {
   const metrics = [
     { icon: <IcoCal />, tint: 'bg-blue-50 text-blue-600', value: data.citasHoy, label: 'Citas hoy', hint: data.citasHoy === 0 ? 'Sin citas programadas' : `${data.citasHoy} programadas`, to: '/citas' },
     { icon: <IcoUser />, tint: 'bg-emerald-50 text-emerald-600', value: data.pacientesActivos, label: 'Pacientes activos', hint: data.pacientesActivos === 0 ? 'Empieza agregando uno' : `${data.pacientesMes} nuevos este mes`, to: '/pacientes' },
-    { icon: <IcoClip />, tint: 'bg-violet-50 text-violet-600', value: data.citasMes, label: 'Evaluaciones este mes', hint: 'Evaluaciones realizadas', to: '/evaluaciones' },
-    { icon: <IcoBowl />, tint: 'bg-amber-50 text-amber-600', value: 0, label: 'Dietas generadas', hint: 'Planes alimentarios', to: '/dietas' },
+    { icon: <IcoClip />, tint: 'bg-violet-50 text-violet-600', value: data.evaluacionesMes, label: 'Evaluaciones este mes', hint: 'Evaluaciones realizadas', to: '/evaluaciones' },
+    { icon: <IcoBowl />, tint: 'bg-amber-50 text-amber-600', value: data.dietasGeneradas, label: 'Dietas generadas', hint: 'Planes alimentarios', to: '/dietas' },
   ]
 
   return (
@@ -155,17 +172,14 @@ export default function DashboardPage() {
           <Card
             title="Módulos clínicos"
             icon={<IcoModules />}
-            action={<span className="rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700">3 activos</span>}
+            action={
+              <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700">
+                {MODULOS.filter(m => m.active).length} activos
+              </span>
+            }
           >
             <div className="grid grid-cols-3 gap-3">
-              {[
-                { emoji: '📐', label: 'Antropometría', active: true },
-                { emoji: '🔬', label: 'Bioquímica', active: true },
-                { emoji: '🩺', label: 'Clínica', active: true },
-                { emoji: '🥗', label: 'Dietas', active: false },
-                { emoji: '📈', label: 'Seguimiento', active: false },
-                { emoji: '👶', label: 'Pediátrico', active: false },
-              ].map(mod => (
+              {MODULOS.map(mod => (
                 <div
                   key={mod.label}
                   className={`flex flex-col items-center justify-center gap-2 rounded-xl border bg-white p-4 text-center ${

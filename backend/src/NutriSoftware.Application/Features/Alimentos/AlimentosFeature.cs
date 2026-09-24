@@ -19,7 +19,30 @@ public class GetAlimentosQueryHandler(IAlimentoRepository repo)
     {
         var alimentos = await repo.ObtenerAsync(
             request.NutricionistaId, request.Fuente, request.Categoria, request.Busqueda, ct);
-        return alimentos.Select(AlimentoMapper.ToDto).ToList();
+
+        // Sin micronutrientes: el listado no los muestra y mandarlos para los
+        // 1.895 alimentos de la tabla peruana infla la respuesta de ~380 KB a
+        // 1,2 MB. Quien los necesita los pide por id.
+        return alimentos.Select(a => AlimentoMapper.ToDto(a, incluirMicronutrientes: false)).ToList();
+    }
+}
+
+public record GetAlimentoByIdQuery(Guid Id) : IRequest<AlimentoDto>;
+
+/// <summary>
+/// Devuelve un alimento con su composicion completa. Lo usa el modulo de
+/// Consumo al agregar un alimento al recordatorio: necesita los 22
+/// nutrientes, pero de a uno por vez.
+/// </summary>
+public class GetAlimentoByIdQueryHandler(IAlimentoRepository repo)
+    : IRequestHandler<GetAlimentoByIdQuery, AlimentoDto>
+{
+    public async Task<AlimentoDto> Handle(GetAlimentoByIdQuery request, CancellationToken ct)
+    {
+        var alimento = await repo.ObtenerPorIdAsync(request.Id, ct)
+            ?? throw new KeyNotFoundException("Alimento no encontrado.");
+
+        return AlimentoMapper.ToDto(alimento, incluirMicronutrientes: true);
     }
 }
 
@@ -87,7 +110,7 @@ public class EliminarAlimentoCommandHandler(IAlimentoRepository repo)
 /* ── Mapper ── */
 internal static class AlimentoMapper
 {
-    internal static AlimentoDto ToDto(Alimento a)
+    internal static AlimentoDto ToDto(Alimento a, bool incluirMicronutrientes = true)
     {
         decimal? sodio = null, calcio = null, hierro = null;
         Dictionary<string, decimal?>? micronutrientes = null;
@@ -102,7 +125,7 @@ internal static class AlimentoMapper
                     micro.TryGetValue("sodio",  out sodio);
                     micro.TryGetValue("calcio", out calcio);
                     micro.TryGetValue("hierro", out hierro);
-                    micronutrientes = micro;
+                    if (incluirMicronutrientes) micronutrientes = micro;
                 }
             }
             catch { /* ignore malformed JSON */ }
