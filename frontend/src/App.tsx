@@ -19,6 +19,8 @@ import EvaluacionAdultoPage from './pages/evaluacion/EvaluacionAdultoPage'
 import DietaConstructorPage from './pages/dietas/DietaConstructorPage'
 import SeguimientoPage from './pages/seguimiento/SeguimientoPage'
 import ExportarPDFPage from './pages/reportes/ExportarPDFPage'
+import ConsumoPage from './pages/consumo/ConsumoPage'
+import RecordatorioPage from './pages/consumo/RecordatorioPage'
 import { SelectorPacientes } from './components/pacientes/SelectorPacientes'
 
 const queryClient = new QueryClient()
@@ -62,6 +64,11 @@ function App() {
             />
             <Route path="/dietas/:pacienteId/nueva" element={<DietaConstructorPage />} />
             <Route path="/dietas/:pacienteId/:dietaId" element={<DietaConstructorPage />} />
+
+            {/* ── Módulo E · Consumo declarado ── */}
+            <Route path="/consumo" element={<ConsumoPage />} />
+            <Route path="/consumo/:pacienteId" element={<ConsumoPage />} />
+            <Route path="/consumo/:pacienteId/:registroId" element={<RecordatorioPage />} />
 
             {/* ── Módulo D · Exportación PDF ── */}
             <Route path="/dietas/:pacienteId/:dietaId/exportar" element={<ExportarPDFPage />} />

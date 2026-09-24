@@ -17,6 +17,8 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     public DbSet<Seguimiento> Seguimientos => Set<Seguimiento>();
     public DbSet<Evaluacion> Evaluaciones => Set<Evaluacion>();
     public DbSet<PdfGenerado> PdfsGenerados => Set<PdfGenerado>();
+    public DbSet<RegistroConsumo> RegistrosConsumo => Set<RegistroConsumo>();
+    public DbSet<ItemConsumo> ItemsConsumo => Set<ItemConsumo>();
 
     protected override void OnModelCreating(ModelBuilder model)
     {
@@ -155,6 +157,37 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             e.Property(p => p.Tipo).HasMaxLength(200).IsRequired();
             e.Property(p => p.NombreArchivo).HasMaxLength(260).IsRequired();
             e.HasIndex(p => new { p.PacienteId, p.Fecha });
+        });
+
+        model.Entity<RegistroConsumo>(e =>
+        {
+            e.HasKey(r => r.Id);
+            e.HasOne(r => r.Paciente).WithMany(p => p.RegistrosConsumo)
+             .HasForeignKey(r => r.PacienteId);
+            // Restrict y no Cascade: borrar un nutricionista no debe llevarse
+            // registros que siguen colgando de pacientes vivos.
+            e.HasOne(r => r.Nutricionista).WithMany()
+             .HasForeignKey(r => r.NutricionistaId)
+             .OnDelete(DeleteBehavior.Restrict);
+            e.Property(r => r.Titulo).HasMaxLength(200).IsRequired();
+            e.HasIndex(r => new { r.PacienteId, r.Fecha });
+        });
+
+        model.Entity<ItemConsumo>(e =>
+        {
+            e.HasKey(i => i.Id);
+            e.HasOne(i => i.RegistroConsumo).WithMany(r => r.Items)
+             .HasForeignKey(i => i.RegistroConsumoId)
+             .OnDelete(DeleteBehavior.Cascade);
+            // Sin FK al alimento: si se elimina del catalogo, el item conserva
+            // el nombre y la composicion que copio al registrarse.
+            e.Property(i => i.NombreAlimento).HasMaxLength(200).IsRequired();
+            e.Property(i => i.TiempoComida).HasMaxLength(100).IsRequired();
+            e.Property(i => i.OrigenAlimento).HasMaxLength(20).IsRequired();
+            e.Property(i => i.Gramos).HasPrecision(10, 2);
+            e.Property(i => i.ComposicionJson).HasColumnType("jsonb");
+            e.HasIndex(i => i.RegistroConsumoId);
+            e.HasIndex(i => i.AlimentoId);
         });
     }
 }

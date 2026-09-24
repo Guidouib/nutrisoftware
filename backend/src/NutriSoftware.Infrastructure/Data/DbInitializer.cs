@@ -10,6 +10,10 @@ public static class DbInitializer
     {
         await SembrarAlimentosAsync(db);
 
+        // Agrega la tabla peruana completa sobre los 28 de arriba. Es
+        // idempotente: saltea por nombre lo que ya este cargado.
+        await ImportadorTablaTpca.ImportarAsync(db);
+
         if (sembrarDemo)
             await SembrarCuentaDemoAsync(db);
     }

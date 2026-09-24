@@ -29,6 +29,15 @@ export interface Alimento {
   vitaminaC?: number
   esPersonalizado: boolean
   nutricionistaId?: string
+
+  /**
+   * Composición completa por 100 g, nutriente → valor, para los alimentos que
+   * la traen (la tabla peruana aporta 22). Un nutriente en `null` significa
+   * que la tabla no tiene el dato, no que valga cero.
+   *
+   * Opcional: las pantallas que solo usan macronutrientes la ignoran.
+   */
+  micronutrientes?: Record<string, number | null>
 }
 
 export interface PlatilloIngrediente {

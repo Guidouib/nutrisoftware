@@ -22,6 +22,7 @@ const NAV_GROUPS: { label: string; items: NavLeaf[] }[] = [
       { to: '/alimentos',    label: 'Alimentos',    Icon: IconDrop },
       { to: '/evaluaciones', label: 'Evaluaciones', Icon: IconClipboard },
       { to: '/dietas',       label: 'Dietas',       Icon: IconBowl },
+      { to: '/consumo',      label: 'Consumo',      Icon: IconPlato },
     ],
   },
   {
@@ -217,6 +218,16 @@ function IconBowl() {
       <ellipse cx="10" cy="6" rx="6.5" ry="2.8" stroke="currentColor" strokeWidth="1.6" />
       <path d="M3.5 6v6.5c0 1.7 2.9 3.2 6.5 3.2s6.5-1.5 6.5-3.2V6" stroke="currentColor" strokeWidth="1.6" />
       <path d="M3.5 10c0 1.7 2.9 3.2 6.5 3.2s6.5-1.5 6.5-3.2" stroke="currentColor" strokeWidth="1.5" />
+    </svg>
+  )
+}
+/** Plato con cubiertos: lo que el paciente declaró haber comido. */
+function IconPlato() {
+  return (
+    <svg {...S}>
+      <circle cx="9" cy="10" r="5.5" stroke="currentColor" strokeWidth="1.6" />
+      <circle cx="9" cy="10" r="2.4" stroke="currentColor" strokeWidth="1.4" />
+      <path d="M16.2 3.5v6.2M16.2 9.7v6.8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
     </svg>
   )
 }

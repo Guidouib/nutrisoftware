@@ -89,6 +89,17 @@ export default function AlimentosPage() {
   const { register: regPl, handleSubmit: submitPl, reset: resetPl, formState: { errors: plErr } } =
     useForm<PlatilloForm>({ resolver: zodResolver(platilloSchema) as unknown as Resolver<PlatilloForm>, defaultValues: { porciones: 1 } })
 
+  /* ── Categorías de los chips ──
+     CATEGORIAS fija el orden y se sigue usando en el formulario de alta, pero
+     los chips salen de lo que realmente hay cargado: la tabla peruana trae
+     categorías propias ("Segundos y platos preparados", "Sopas y entradas")
+     que no están en la lista fija y quedarían sin chip. */
+  const categoriasDisponibles = useMemo(() => {
+    const presentes = new Set(alimentos.map(a => a.categoria).filter(Boolean))
+    const extra = [...presentes].filter(c => !CATEGORIAS.includes(c as CategoriaAlimento)).sort()
+    return [...CATEGORIAS.filter(c => presentes.has(c)), ...extra]
+  }, [alimentos])
+
   /* ── Filtered alimentos ── */
   const filtered = useMemo(() => {
     const q = search.toLowerCase()
@@ -327,7 +338,7 @@ export default function AlimentosPage() {
             <div className="bg-surface border border-border rounded-2xl p-4 shadow-xs">
               <p className="text-[11px] font-bold text-text-tertiary uppercase tracking-[0.1em] mb-3">Categoría</p>
               <div className="space-y-0.5 max-h-[280px] overflow-y-auto pr-0.5">
-                {['todas', ...CATEGORIAS].map(c => (
+                {['todas', ...categoriasDisponibles].map(c => (
                   <button
                     key={c}
                     onClick={() => setCategoria(c)}

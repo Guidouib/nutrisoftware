@@ -27,5 +27,6 @@ public class Paciente
     public ICollection<Dieta> Dietas { get; set; } = [];
     public ICollection<Seguimiento> Seguimientos { get; set; } = [];
     public ICollection<Evaluacion> Evaluaciones { get; set; } = [];
+    public ICollection<RegistroConsumo> RegistrosConsumo { get; set; } = [];
     public ICollection<PdfGenerado> PdfsGenerados { get; set; } = [];
 }

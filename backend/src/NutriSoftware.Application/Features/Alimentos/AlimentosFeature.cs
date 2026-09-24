@@ -90,6 +90,8 @@ internal static class AlimentoMapper
     internal static AlimentoDto ToDto(Alimento a)
     {
         decimal? sodio = null, calcio = null, hierro = null;
+        Dictionary<string, decimal?>? micronutrientes = null;
+
         if (a.MicronutrientesJson is not null)
         {
             try
@@ -100,6 +102,7 @@ internal static class AlimentoMapper
                     micro.TryGetValue("sodio",  out sodio);
                     micro.TryGetValue("calcio", out calcio);
                     micro.TryGetValue("hierro", out hierro);
+                    micronutrientes = micro;
                 }
             }
             catch { /* ignore malformed JSON */ }
@@ -109,7 +112,8 @@ internal static class AlimentoMapper
             a.Id, a.Nombre, a.Fuente.ToString(), a.Categoria,
             a.Energia, a.Proteinas, a.Grasas, a.Carbohidratos, a.Fibra,
             sodio, calcio, hierro,
-            a.EsPersonalizado, a.FechaCreacion
+            a.EsPersonalizado, a.FechaCreacion,
+            micronutrientes
         );
     }
 }

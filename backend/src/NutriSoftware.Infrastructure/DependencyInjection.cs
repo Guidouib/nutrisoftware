@@ -37,6 +37,7 @@ public static class DependencyInjection
         services.AddScoped<IDietaRepository, DietaRepository>();
         services.AddScoped<ISeguimientoRepository, SeguimientoRepository>();
         services.AddScoped<IReporteRepository, ReporteRepository>();
+        services.AddScoped<IConsumoRepository, ConsumoRepository>();
         services.AddScoped<IJwtService, JwtService>();
         services.AddScoped<IPasswordService, PasswordService>();
         services.AddScoped<IDashboardService, DashboardService>();

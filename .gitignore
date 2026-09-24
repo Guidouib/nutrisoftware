@@ -6,7 +6,9 @@ backend/**/*.suo
 backend/.vs/
 
 # Entity Framework
-backend/**/Migrations/
+# Las migraciones NO se ignoran: son codigo fuente. Sin ellas en el repo, la
+# imagen que construye Render no las lleva, MigrateAsync() no encuentra nada
+# que aplicar y la base de produccion se queda sin las tablas nuevas.
 
 # Frontend
 frontend/node_modules/
@@ -16,6 +18,15 @@ frontend/.env.local
 # Env files (secrets)
 **/.env
 **/appsettings.Development.json
+
+# Fuente de datos con informacion personal
+# NutriCAP.xlsm trae nombres reales de encuestadores y 403 encuestas
+# dieteticas de personas identificables. El repositorio es publico: el
+# archivo se queda en local. De el solo se extrajo la tabla de composicion
+# de alimentos (Data/Seed/tpca-alimentos.json), que es una referencia
+# publicada y no contiene datos de nadie.
+NutriCAP.xlsm
+*.xlsm
 
 # OS
 .DS_Store

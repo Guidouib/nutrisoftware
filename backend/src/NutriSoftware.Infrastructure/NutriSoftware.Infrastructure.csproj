@@ -6,6 +6,13 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- Tabla peruana de composicion: 1.870 alimentos. Va embebida para que
+         la siembra no dependa de rutas del sistema de archivos ni del
+         directorio de trabajo del contenedor. -->
+    <EmbeddedResource Include="Data\Seed\tpca-alimentos.json" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="BCrypt.Net-Next" Version="4.2.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.9" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.9">

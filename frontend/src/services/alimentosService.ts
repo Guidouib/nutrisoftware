@@ -16,6 +16,7 @@ interface AlimentoApi {
   hierro?: number
   esPersonalizado: boolean
   fechaCreacion: string
+  micronutrientes?: Record<string, number | null>
 }
 
 function mapFuente(f: string): FuenteAlimento {
@@ -37,6 +38,7 @@ function mapAlimento(a: AlimentoApi): Alimento {
     sodio:          a.sodio,
     calcio:         a.calcio,
     hierro:         a.hierro,
+    micronutrientes: a.micronutrientes,
     esPersonalizado: a.esPersonalizado,
   }
 }
