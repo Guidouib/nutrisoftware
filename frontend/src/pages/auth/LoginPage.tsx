@@ -66,6 +66,7 @@ const trustItems = [
 export default function LoginPage() {
   const [showPwd, setShowPwd]         = useState(false)
   const [serverError, setServerError] = useState('')
+  const [mostrarAyudaClave, setMostrarAyudaClave] = useState(false)
   const navigate  = useNavigate()
   const loginUser = useAuthStore(s => s.login)
 
@@ -436,17 +437,34 @@ export default function LoginPage() {
                 {errors.password && <ErrMsg msg={errors.password.message!} />}
               </div>
 
-              {/* Forgot password */}
+              {/* Recuperar contraseña — todavía no hay envío de correo, así que
+                  en vez de un enlace muerto se explica a dónde acudir. */}
               <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '-4px' }}>
-                <a
-                  href="#"
-                  style={{ fontSize: '13px', color: '#7A9882', fontWeight: 500, textDecoration: 'none' }}
+                <button
+                  type="button"
+                  onClick={() => setMostrarAyudaClave(v => !v)}
+                  style={{
+                    fontSize: '13px', color: '#7A9882', fontWeight: 500,
+                    background: 'none', border: 'none', padding: 0, cursor: 'pointer',
+                  }}
                   onMouseEnter={e => (e.currentTarget.style.color = '#0D9F63')}
                   onMouseLeave={e => (e.currentTarget.style.color = '#7A9882')}
                 >
                   ¿Olvidaste tu contraseña?
-                </a>
+                </button>
               </div>
+
+              {mostrarAyudaClave && (
+                <div style={{
+                  borderRadius: '10px', border: '1px solid #E4EBE6',
+                  background: '#F7FAF8', padding: '12px', fontSize: '12px',
+                  color: '#4A6152', lineHeight: 1.5,
+                }}>
+                  La recuperación automática todavía no está disponible. Escribí a{' '}
+                  <strong>soporte@nutrisoftware.com</strong> desde el correo con el que
+                  te registraste y te enviamos una contraseña nueva.
+                </div>
+              )}
 
               {/* Server error */}
               {serverError && (

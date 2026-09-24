@@ -1,4 +1,5 @@
 using MediatR;
+using NutriSoftware.Application.Common;
 using NutriSoftware.Application.Common.Interfaces;
 using NutriSoftware.Application.DTOs.Auth;
 using NutriSoftware.Domain.Entities;
@@ -12,6 +13,18 @@ public class RegisterCommandHandler(IUsuarioRepository usuarioRepo, IJwtService 
 {
     public async Task<LoginResponse> Handle(RegisterCommand request, CancellationToken cancellationToken)
     {
+        if (string.IsNullOrWhiteSpace(request.Email) || !request.Email.Contains('@'))
+            throw new InvalidOperationException("El correo no es válido.");
+
+        // La validación del navegador es comodidad, no control: sin esto el
+        // API acepta cualquier contraseña, incluida una de un carácter.
+        var motivo = PoliticaContrasena.Validar(request.Password);
+        if (motivo is not null)
+            throw new InvalidOperationException(motivo);
+
+        if (string.IsNullOrWhiteSpace(request.Nombres) || string.IsNullOrWhiteSpace(request.Apellidos))
+            throw new InvalidOperationException("Nombres y apellidos son obligatorios.");
+
         if (await usuarioRepo.ExisteEmailAsync(request.Email, cancellationToken))
             throw new InvalidOperationException("El email ya está registrado.");
 

@@ -1,4 +1,5 @@
 using System.Text;
+using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -61,6 +62,30 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     });
 
 builder.Services.AddAuthorization();
+
+// Limite de intentos sobre /api/auth: sin esto el login admite fuerza bruta
+// ilimitada contra cualquier cuenta. La ventana es por IP.
+builder.Services.AddRateLimiter(opt =>
+{
+    opt.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+
+    opt.AddPolicy("Autenticacion", contexto =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            // Se prefiere la IP real cuando hay proxy delante (Netlify, Render):
+            // sin esto todas las peticiones compartirian la IP del proxy y un
+            // solo atacante agotaria el cupo de todos.
+            partitionKey: contexto.Request.Headers["X-Forwarded-For"].FirstOrDefault()
+                ?.Split(',')[0].Trim()
+                ?? contexto.Connection.RemoteIpAddress?.ToString()
+                ?? "desconocida",
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 10,
+                Window = TimeSpan.FromMinutes(1),
+                QueueLimit = 0,
+            }));
+});
+
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
@@ -121,6 +146,7 @@ using (var scope = app.Services.CreateScope())
     await DbInitializer.SeedAsync(db, app.Configuration.GetValue("SembrarDatosDemo", false));
 }
 
+app.UseRateLimiter();
 app.UseMiddleware<ExceptionMiddleware>();
 app.UseCors("Frontend");
 app.UseAuthentication();
