@@ -31,3 +31,7 @@ NutriCAP.xlsm
 # OS
 .DS_Store
 Thumbs.db
+
+# Respaldos de la base: contienen datos de pacientes, nunca al repositorio
+scripts/respaldos/
+*.dump
