@@ -19,6 +19,7 @@ Para el despliegue inicial ver [DEPLOY.md](DEPLOY.md).
 | `HabilitarSwagger` | `true` | **`false`** |
 | `PermitirRegistroPublico` | `true` | **`false`** si las cuentas las creás vos |
 | `Limites__MaxPacientes` | 50 | el tope que corresponda |
+| `Suscripcion__DiasPrueba` | 30 | días de prueba de las cuentas nuevas |
 | `AllowedOrigins` | — | tu dominio real |
 | `Jwt__Secret` | — | sin cambios |
 | `DATABASE_URL` | — | la de Neon |
@@ -66,7 +67,47 @@ variable al compilar, no en tiempo de ejecución.
 
 ---
 
-## 2 · Borrar los datos de demostración
+## 2 · Cobro manual de suscripciones
+
+El acceso se corta solo cuando vence. El cliente paga por Yape o
+transferencia y vos le extendés el plazo con el script incluido:
+
+```powershell
+$env:NUTRISOFTWARE_DB = "postgresql://...la cadena de Neon..."
+
+# Ver a todos con su vencimiento y días restantes
+.\scripts\suscripciones.ps1 listar
+
+# Pagó 3 meses
+.\scripts\suscripciones.ps1 extender -Email ana@clinica.com -Meses 3 -Nota "Yape 25/09, S/150"
+
+# Cortar el acceso sin perder hasta cuándo había pagado
+.\scripts\suscripciones.ps1 suspender -Email moroso@clinica.com
+
+# Cuenta interna o de cortesía, sin vencimiento
+.\scripts\suscripciones.ps1 libre -Email socio@clinica.com
+```
+
+Cómo funciona:
+
+- Las cuentas nuevas arrancan con **30 días de prueba**
+  (`Suscripcion__DiasPrueba`)
+- `extender` cuenta desde hoy si ya venció, así no se regala el tiempo perdido
+- Vencida o suspendida, **el API responde 402 a todo salvo el login**, y la
+  aplicación muestra una pantalla explicando el motivo en vez de una sucesión
+  de errores
+- El último día se cuenta completo
+- Los datos **no se tocan**: al renovar, el cliente encuentra todo igual
+- El estado viaja en la respuesta de login, así que tras un cambio el usuario
+  tiene que volver a entrar para que le tome
+
+> Las cuentas que ya existían quedaron **sin vencimiento**: la migración no
+> les puso fecha, así que siguen entrando como antes. Asignales una con
+> `extender` o `fijar` cuando empieces a cobrarles.
+
+---
+
+## 3 · Borrar los datos de demostración
 
 Desde el SQL Editor de Neon, **después** de poner `SembrarDatosDemo=false`
 (si no, el próximo arranque los vuelve a crear):
@@ -88,7 +129,7 @@ SELECT count(*) FROM "Pacientes";
 
 ---
 
-## 3 · Respaldos
+## 4 · Respaldos
 
 **El plan gratuito de Neon no incluye respaldos.** Con historias clínicas
 adentro eso no es defendible. Dos caminos:
@@ -112,7 +153,7 @@ un respaldo en el mismo disco que puede fallar no protege de mucho.
 
 ---
 
-## 4 · Que el servicio no se duerma
+## 5 · Que el servicio no se duerma
 
 El plan gratuito de Render apaga el API a los 15 minutos sin tráfico y tarda
 cerca de un minuto en volver. Para producción:
@@ -134,6 +175,7 @@ cerca de un minuto en volver. Para producción:
 | **Migraciones** | Se aplican solas al desplegar. |
 | **Verificación de correo** | El alta manda un enlace que vence en 24 h y es de un solo uso. Sin confirmar no se puede entrar. Las cuentas anteriores a este cambio quedaron verificadas en la migración. |
 | **Tope de pacientes** | 50 activos por nutricionista, aplicado en el servidor. El widget del sidebar muestra el conteo real. |
+| **Suscripciones** | Cobro manual con vencimiento por cuenta. Vencida o suspendida, el API responde 402. Se administra con `scripts/suscripciones.ps1`. |
 
 ---
 
@@ -189,6 +231,7 @@ configurado ya se puede implementar.
 [ ] Respaldos andando (Neon pago o script programado)
 [ ] Render Starter o UptimeRobot
 [ ] Correo__* configurado  (sin esto no hay verificación real)
+[ ] Vencimiento asignado a las cuentas que ya existían
 [ ] Consentimiento del paciente firmado
 [ ] Términos y política de privacidad redactados
 [ ] Banco de datos inscrito ante la ANPD

@@ -48,7 +48,11 @@ public class RegisterCommandHandler(
             Nombres = request.Nombres,
             Apellidos = request.Apellidos,
             Especialidad = request.Especialidad,
-            Telefono = request.Telefono
+            Telefono = request.Telefono,
+            // Periodo de prueba: sin esto la cuenta nueva quedaria sin
+            // vencimiento, es decir con acceso permanente y gratis.
+            SuscripcionHasta = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(request.DiasPrueba),
+            NotaSuscripcion = "Periodo de prueba automatico al registrarse.",
         };
 
         await usuarioRepo.AgregarAsync(usuario, cancellationToken);
@@ -90,11 +94,7 @@ public class RegisterCommandHandler(
         return new RegistroResponse(
             RequiereVerificacion: false,
             Mensaje: "Cuenta creada.",
-            Sesion: new LoginResponse(
-                accessToken,
-                refreshToken,
-                usuario.Email,
-                $"{request.Nombres} {request.Apellidos}",
-                usuario.Rol.ToString()));
+            Sesion: RespuestaSesion.Crear(
+                usuario, accessToken, refreshToken, $"{request.Nombres} {request.Apellidos}"));
     }
 }

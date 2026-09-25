@@ -48,7 +48,7 @@ interface SidebarProps {
 }
 
 export default function Sidebar({ mobileOpen, onMobileClose }: SidebarProps) {
-  const { user, logout } = useAuthStore()
+  const { user, suscripcion, logout } = useAuthStore()
   const name = user?.nombreCompleto ?? 'Usuario'
   const initials = name.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase()
 
@@ -61,6 +61,21 @@ export default function Sidebar({ mobileOpen, onMobileClose }: SidebarProps) {
     enabled: Boolean(user),
   })
   const pacientes = stats?.pacientesActivos ?? 0
+
+  // Estado de la suscripcion. Antes el widget decia "Plan Starter" fijo,
+  // sin relacion con nada.
+  const dias = suscripcion?.diasRestantes ?? null
+  const porVencer = suscripcion?.estado === 'PorVencer'
+  const textoSuscripcion =
+    suscripcion?.estado === 'SinVencimiento' || !suscripcion?.estado
+      ? 'Cuenta activa'
+      : dias === null
+        ? 'Cuenta activa'
+        : dias <= 0
+          ? 'Vence hoy'
+          : dias === 1
+            ? 'Vence mañana'
+            : `${dias} días restantes`
 
   return (
     <>
@@ -95,14 +110,18 @@ export default function Sidebar({ mobileOpen, onMobileClose }: SidebarProps) {
           </div>
         </div>
 
-        {/* ── Badge de plan ── */}
+        {/* ── Suscripcion y uso ── */}
         <div className="mx-4 mb-4">
           <div className="flex items-center gap-3 rounded-xl bg-white/[0.05] px-3.5 py-3">
-            <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-accent-500">
+            <div className={`flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full ${
+              porVencer ? 'bg-amber-500' : 'bg-accent-500'
+            }`}>
               <IconStar />
             </div>
             <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-semibold leading-tight text-white">Plan Starter</p>
+              <p className="truncate text-sm font-semibold leading-tight text-white">
+                {textoSuscripcion}
+              </p>
               <p className="truncate text-xs leading-tight text-slate-400">
                 {user ? `${pacientes} de ${MAX_PACIENTES} pacientes` : '—'}
               </p>

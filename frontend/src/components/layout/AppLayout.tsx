@@ -3,12 +3,20 @@ import { Navigate, Outlet } from 'react-router-dom'
 import { useAuthStore } from '../../stores/authStore'
 import Sidebar from './Sidebar'
 import { AvisoDemo } from './AvisoDemo'
+import { SuscripcionBloqueada } from './SuscripcionBloqueada'
 
 export default function AppLayout() {
   const isAuthenticated = useAuthStore(s => s.isAuthenticated)
+  const suscripcion = useAuthStore(s => s.suscripcion)
   const [mobileOpen, setMobileOpen] = useState(false)
 
   if (!isAuthenticated) return <Navigate to="/login" replace />
+
+  // Con la suscripción cortada el API responde 402 a todo: se muestra una
+  // sola pantalla con el motivo en vez de dejar que cada módulo falle por
+  // su cuenta con errores que no explican nada.
+  if (suscripcion?.estado === 'Vencida' || suscripcion?.estado === 'Suspendida')
+    return <SuscripcionBloqueada />
 
   return (
     <div className="flex w-full min-h-screen gap-6 bg-[#f8fafc]">

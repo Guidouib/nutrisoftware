@@ -11,5 +11,7 @@ public record RegisterCommand(
     string? Especialidad,
     string? Telefono,
     /// <summary>Origen del frontend, para armar el enlace de verificacion.</summary>
-    string UrlBase
+    string UrlBase,
+    /// <summary>Dias de prueba que se le dan a la cuenta nueva.</summary>
+    int DiasPrueba
 ) : IRequest<RegistroResponse>;

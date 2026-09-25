@@ -54,7 +54,8 @@ public class AuthController(IMediator mediator, IConfiguration config) : Control
 
         var result = await mediator.Send(
             new RegisterCommand(request.Email, request.Password, request.Nombres,
-                request.Apellidos, request.Especialidad, request.Telefono, UrlBaseFrontend),
+                request.Apellidos, request.Especialidad, request.Telefono, UrlBaseFrontend,
+                DiasPrueba: int.TryParse(config["Suscripcion:DiasPrueba"], out var dp) ? dp : 30),
             ct);
         return CreatedAtAction(nameof(Login), result);
     }

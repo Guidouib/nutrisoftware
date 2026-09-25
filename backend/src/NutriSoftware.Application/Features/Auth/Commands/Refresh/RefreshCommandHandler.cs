@@ -64,7 +64,6 @@ public class RefreshCommandHandler(
                 ? $"{usuario.Paciente.Nombres} {usuario.Paciente.Apellidos}"
                 : usuario.Email;
 
-        return new LoginResponse(
-            accessToken, refreshToken, usuario.Email, nombreCompleto, usuario.Rol.ToString());
+        return RespuestaSesion.Crear(usuario, accessToken, refreshToken, nombreCompleto);
     }
 }

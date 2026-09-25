@@ -86,7 +86,14 @@ builder.Services.AddRateLimiter(opt =>
             }));
 });
 
-builder.Services.AddControllers();
+builder.Services.AddScoped<SuscripcionFilter>();
+builder.Services.AddControllers(opt =>
+{
+    // Global: alcanza a todos los controladores y el propio filtro exceptua
+    // los de autenticacion. Ponerlo por atributo obligaria a recordar
+    // agregarlo en cada controlador nuevo.
+    opt.Filters.Add<SuscripcionFilter>();
+});
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
