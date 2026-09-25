@@ -18,6 +18,7 @@ Para el despliegue inicial ver [DEPLOY.md](DEPLOY.md).
 | `SembrarDatosDemo` | `true` | **`false`** |
 | `HabilitarSwagger` | `true` | **`false`** |
 | `PermitirRegistroPublico` | `true` | **`false`** si las cuentas las creás vos |
+| `Limites__MaxPacientes` | 50 | el tope que corresponda |
 | `AllowedOrigins` | — | tu dominio real |
 | `Jwt__Secret` | — | sin cambios |
 | `DATABASE_URL` | — | la de Neon |
@@ -29,6 +30,29 @@ los pacientes ficticios. **No borra los que ya existen**: eso va en el paso 2.
 llegue a la URL se crea una cuenta en la misma base donde están tus pacientes.
 Sus datos quedarían aislados —el filtrado por nutricionista está bien hecho—
 pero no querés desconocidos ahí adentro.
+
+### Correo — obligatorio para la verificación
+
+El alta exige confirmar el correo. Sin estas variables **el servicio queda
+desactivado y las cuentas nuevas se dan por verificadas solas**: sin correo no
+habría forma de completar el alta y quedarían inaccesibles para siempre.
+
+| Variable | Ejemplo |
+|---|---|
+| `Correo__Host` | `smtp-relay.brevo.com` |
+| `Correo__Puerto` | `587` |
+| `Correo__Usuario` | el que te dé el proveedor |
+| `Correo__Clave` | |
+| `Correo__Remitente` | `no-reply@tudominio.com` |
+| `Correo__Nombre` | `NutriSoftware` |
+| `Correo__UsarSsl` | `true` — solo se pone en `false` para un servidor de pruebas local |
+
+Sirve cualquier proveedor con SMTP: Brevo (300 correos diarios gratis),
+Resend, SendGrid o incluso Gmail con contraseña de aplicación.
+
+Si el envío falla, **la cuenta igual se crea** y queda pendiente: una caída
+del proveedor no puede impedir que alguien se registre. El usuario pide un
+enlace nuevo desde el login.
 
 ### Netlify — el frontend
 
@@ -108,6 +132,8 @@ cerca de un minuto en volver. Para producción:
 | **Fuerza bruta** | 10 intentos por minuto y por IP sobre `/api/auth`. El resto del API no está limitado. |
 | **Aislamiento** | Los 9 repositorios filtran por nutricionista a través del paciente. Nadie ve pacientes ajenos. |
 | **Migraciones** | Se aplican solas al desplegar. |
+| **Verificación de correo** | El alta manda un enlace que vence en 24 h y es de un solo uso. Sin confirmar no se puede entrar. Las cuentas anteriores a este cambio quedaron verificadas en la migración. |
+| **Tope de pacientes** | 50 activos por nutricionista, aplicado en el servidor. El widget del sidebar muestra el conteo real. |
 
 ---
 
@@ -141,9 +167,13 @@ seguimiento y consumo trabajan sobre datos correctos.
 
 ### 📧 Recuperación de contraseña
 
-No hay envío de correo, así que el enlace del login explica que hay que
-escribir a soporte. Si vas a tener varios usuarios, conviene resolverlo:
-`/api/reportes/{id}/enviar` también responde 501 por lo mismo.
+Ya existe la infraestructura de correo, pero **el flujo de recuperación no
+está hecho**: el enlace del login explica que hay que escribir a soporte.
+Ahora que el SMTP está andando, resolverlo es bastante menos trabajo —
+reutiliza el mismo mecanismo de token que la verificación.
+
+`/api/reportes/{id}/enviar` también sigue respondiendo 501; con el correo
+configurado ya se puede implementar.
 
 ---
 
@@ -158,6 +188,7 @@ escribir a soporte. Si vas a tener varios usuarios, conviene resolverlo:
 [ ] Borrar la cuenta demo de la base
 [ ] Respaldos andando (Neon pago o script programado)
 [ ] Render Starter o UptimeRobot
+[ ] Correo__* configurado  (sin esto no hay verificación real)
 [ ] Consentimiento del paciente firmado
 [ ] Términos y política de privacidad redactados
 [ ] Banco de datos inscrito ante la ANPD

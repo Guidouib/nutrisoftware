@@ -22,6 +22,9 @@ public class UsuarioRepository(ApplicationDbContext db) : IUsuarioRepository
     public async Task<bool> ExisteEmailAsync(string email, CancellationToken ct) =>
         await db.Usuarios.AnyAsync(u => u.Email == email.ToLowerInvariant(), ct);
 
+    public async Task<Usuario?> ObtenerPorTokenVerificacionAsync(string token, CancellationToken ct) =>
+        await db.Usuarios.FirstOrDefaultAsync(u => u.TokenVerificacion == token, ct);
+
     public async Task AgregarAsync(Usuario usuario, CancellationToken ct) =>
         await db.Usuarios.AddAsync(usuario, ct);
 

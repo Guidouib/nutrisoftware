@@ -1,6 +1,11 @@
 import type { JSX } from 'react'
 import { NavLink } from 'react-router-dom'
+import { useQuery } from '@tanstack/react-query'
 import { useAuthStore } from '../../stores/authStore'
+import { api } from '../../services/api'
+
+/** Tope de pacientes del plan; el servidor lo aplica en cada alta. */
+const MAX_PACIENTES = 50
 
 /* ─────────────────────────────────────────────────────────────
    MODELO DE NAVEGACIÓN
@@ -47,6 +52,16 @@ export default function Sidebar({ mobileOpen, onMobileClose }: SidebarProps) {
   const name = user?.nombreCompleto ?? 'Usuario'
   const initials = name.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase()
 
+  // Conteo real de pacientes. Antes el widget decía «0 de 25» escrito a mano:
+  // ni contaba ni existía tal límite. Comparte la clave de react-query con el
+  // dashboard, así que no agrega una consulta extra.
+  const { data: stats } = useQuery({
+    queryKey: ['dashboard', 'stats'],
+    queryFn: () => api.get<{ pacientesActivos: number }>('/dashboard/stats').then(r => r.data),
+    enabled: Boolean(user),
+  })
+  const pacientes = stats?.pacientesActivos ?? 0
+
   return (
     <>
       {/* Overlay móvil */}
@@ -89,13 +104,16 @@ export default function Sidebar({ mobileOpen, onMobileClose }: SidebarProps) {
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-semibold leading-tight text-white">Plan Starter</p>
               <p className="truncate text-xs leading-tight text-slate-400">
-                {user ? '0 de 25 pacientes' : '—'}
+                {user ? `${pacientes} de ${MAX_PACIENTES} pacientes` : '—'}
               </p>
             </div>
             <IconSync />
           </div>
           <div className="mt-2 h-1 overflow-hidden rounded-full bg-white/10">
-            <div className="h-full w-0 rounded-full bg-accent-400" />
+            <div
+              className="h-full rounded-full bg-accent-400 transition-[width]"
+              style={{ width: `${Math.min(100, (pacientes / MAX_PACIENTES) * 100)}%` }}
+            />
           </div>
         </div>
 

@@ -33,7 +33,7 @@ function IcoCheck() {
 
 /* ── Feature items ── */
 const features = [
-  { label: 'Hasta 25 pacientes activos',   icon: <IcoCheck /> },
+  { label: 'Hasta 50 pacientes activos',   icon: <IcoCheck /> },
   { label: 'Evaluaciones ISAK completas',  icon: <IcoCheck /> },
   { label: 'Generación de dietas con IA',  icon: <IcoCheck /> },
   { label: 'Reportes en PDF',              icon: <IcoCheck /> },
@@ -107,6 +107,7 @@ function PwdStrength({ password }: { password: string }) {
 export default function RegisterPage() {
   const [showPwd, setShowPwd]         = useState(false)
   const [serverError, setServerError] = useState('')
+  const [avisoVerificacion, setAvisoVerificacion] = useState('')
   const [pwdVal, setPwdVal]           = useState('')
   const navigate = useNavigate()
 
@@ -119,16 +120,29 @@ export default function RegisterPage() {
   const onSubmit = async (data: FormData) => {
     setServerError('')
     try {
-      await api.post('/auth/register', {
+      const { data: respuesta } = await api.post('/auth/register', {
         nombres:   data.nombres,
         apellidos: data.apellidos,
         email:     data.email,
         password:  data.password,
       })
+
+      // Cuando hay que confirmar el correo el servidor no devuelve sesión:
+      // se avisa en pantalla en vez de mandar al login, donde el usuario
+      // intentaría entrar y sería rechazado sin entender por qué.
+      if (respuesta?.requiereVerificacion) {
+        setAvisoVerificacion(respuesta.mensaje as string)
+        return
+      }
+
       navigate('/login?registered=1')
     } catch (e: unknown) {
-      const err = e as { response?: { data?: { message?: string } } }
-      setServerError(err.response?.data?.message ?? 'Error al crear la cuenta')
+      // El backend responde { error }; el campo `message` no existía y
+      // dejaba siempre el texto genérico, ocultando el motivo real.
+      const err = e as { response?: { data?: { error?: string; message?: string } } }
+      setServerError(
+        err.response?.data?.error ?? err.response?.data?.message ?? 'Error al crear la cuenta'
+      )
     }
   }
 
@@ -507,6 +521,19 @@ export default function RegisterPage() {
                   </svg>
                 }
               />
+
+              {avisoVerificacion && (
+                <div role="status" style={{
+                  padding: '14px 16px', borderRadius: '12px',
+                  background: '#F0FBF5', border: '1px solid #A7E8C8',
+                  color: '#0A5C3B', fontSize: '13px', lineHeight: 1.6,
+                }}>
+                  <strong style={{ display: 'block', marginBottom: '4px' }}>
+                    Revisá tu correo
+                  </strong>
+                  {avisoVerificacion}
+                </div>
+              )}
 
               {serverError && (
                 <div role="alert" style={{

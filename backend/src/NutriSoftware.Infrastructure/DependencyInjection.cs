@@ -41,6 +41,8 @@ public static class DependencyInjection
         services.AddScoped<IJwtService, JwtService>();
         services.AddScoped<IPasswordService, PasswordService>();
         services.AddScoped<IDashboardService, DashboardService>();
+        services.AddScoped<ILimitesPlan, LimitesPlanConfig>();
+        services.AddScoped<IServicioCorreo, ServicioCorreoSmtp>();
 
         // QuestPDF bajo licencia Community (gratuita para uso comercial hasta
         // el umbral de facturacion que fija su licencia).

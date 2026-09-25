@@ -4,14 +4,19 @@ using NutriSoftware.Application.Common.Interfaces;
 using NutriSoftware.Application.DTOs.Auth;
 using NutriSoftware.Domain.Entities;
 using NutriSoftware.Domain.Enums;
+using NutriSoftware.Application.Features.Auth;
 using NutriSoftware.Domain.Interfaces;
 
 namespace NutriSoftware.Application.Features.Auth.Commands.Register;
 
-public class RegisterCommandHandler(IUsuarioRepository usuarioRepo, IJwtService jwtService, IPasswordService passwordService)
-    : IRequestHandler<RegisterCommand, LoginResponse>
+public class RegisterCommandHandler(
+    IUsuarioRepository usuarioRepo,
+    IJwtService jwtService,
+    IPasswordService passwordService,
+    IServicioCorreo correo)
+    : IRequestHandler<RegisterCommand, RegistroResponse>
 {
-    public async Task<LoginResponse> Handle(RegisterCommand request, CancellationToken cancellationToken)
+    public async Task<RegistroResponse> Handle(RegisterCommand request, CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(request.Email) || !request.Email.Contains('@'))
             throw new InvalidOperationException("El correo no es válido.");
@@ -48,6 +53,27 @@ public class RegisterCommandHandler(IUsuarioRepository usuarioRepo, IJwtService 
 
         await usuarioRepo.AgregarAsync(usuario, cancellationToken);
 
+        // Marca la cuenta como pendiente y manda el enlace. Si no hay SMTP
+        // configurado la da por verificada: sin correo el alta no se podria
+        // completar nunca y la cuenta quedaria inaccesible.
+        var enviado = await VerificacionCorreo.PrepararYEnviarAsync(
+            usuario, correo, request.UrlBase, cancellationToken);
+
+        if (!usuario.EmailVerificado)
+        {
+            await usuarioRepo.GuardarCambiosAsync(cancellationToken);
+
+            // La cuenta queda creada aunque el correo no haya salido: se avisa
+            // con franqueza y el usuario puede pedir el enlace de nuevo.
+            return new RegistroResponse(
+                RequiereVerificacion: true,
+                Mensaje: enviado
+                    ? $"Te enviamos un correo a {usuario.Email}. Abri el enlace para activar tu cuenta."
+                    : "Tu cuenta fue creada, pero no pudimos enviarte el correo de " +
+                      "confirmacion. Pedi un enlace nuevo desde el login.",
+                Sesion: null);
+        }
+
         var accessToken = jwtService.GenerarAccessToken(usuario);
         var refreshToken = jwtService.GenerarRefreshToken();
 
@@ -61,12 +87,14 @@ public class RegisterCommandHandler(IUsuarioRepository usuarioRepo, IJwtService 
 
         await usuarioRepo.GuardarCambiosAsync(cancellationToken);
 
-        return new LoginResponse(
-            accessToken,
-            refreshToken,
-            usuario.Email,
-            $"{request.Nombres} {request.Apellidos}",
-            usuario.Rol.ToString()
-        );
+        return new RegistroResponse(
+            RequiereVerificacion: false,
+            Mensaje: "Cuenta creada.",
+            Sesion: new LoginResponse(
+                accessToken,
+                refreshToken,
+                usuario.Email,
+                $"{request.Nombres} {request.Apellidos}",
+                usuario.Rol.ToString()));
     }
 }

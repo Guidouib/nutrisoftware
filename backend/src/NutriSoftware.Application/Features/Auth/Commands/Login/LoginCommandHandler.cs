@@ -20,6 +20,14 @@ public class LoginCommandHandler(IUsuarioRepository usuarioRepo, IJwtService jwt
         if (!usuario.Activo)
             throw new UnauthorizedAccessException("Usuario inactivo.");
 
+        // Se distingue de las credenciales invalidas a proposito: quien llega
+        // aca ya demostro saber la contrasena, asi que decirle que le falta
+        // confirmar el correo no filtra nada y le evita quedar sin entender
+        // por que no entra.
+        if (!usuario.EmailVerificado)
+            throw new UnauthorizedAccessException(
+                "Falta confirmar tu correo. Revisa tu bandeja o pedi un enlace nuevo.");
+
         var accessToken = jwtService.GenerarAccessToken(usuario);
         var refreshToken = jwtService.GenerarRefreshToken();
 

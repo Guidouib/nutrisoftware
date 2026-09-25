@@ -38,6 +38,10 @@ public class PacienteRepository(ApplicationDbContext db) : IPacienteRepository
     public async Task AgregarAsync(Paciente paciente, CancellationToken ct) =>
         await db.Pacientes.AddAsync(paciente, ct);
 
+    public async Task<int> ContarActivosAsync(Guid nutricionistaId, CancellationToken ct) =>
+        await db.Pacientes.CountAsync(
+            p => p.NutricionistaId == nutricionistaId && p.Activo, ct);
+
     public async Task GuardarCambiosAsync(CancellationToken ct) =>
         await db.SaveChangesAsync(ct);
 }

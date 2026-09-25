@@ -9,5 +9,7 @@ public record RegisterCommand(
     string Nombres,
     string Apellidos,
     string? Especialidad,
-    string? Telefono
-) : IRequest<LoginResponse>;
+    string? Telefono,
+    /// <summary>Origen del frontend, para armar el enlace de verificacion.</summary>
+    string UrlBase
+) : IRequest<RegistroResponse>;
